@@ -8,45 +8,51 @@ All colors MUST be HSL.
 
 @layer base {
   :root {
-    /* Research-focused color palette */
-    --background: 248 250 252;
-    --foreground: 203 23% 30%;
+    /* Cyberpunk/futuristic color palette */
+    --background: 220 13% 8%;
+    --foreground: 190 90% 90%;
 
-    --card: 0 0% 100%;
-    --card-foreground: 203 23% 30%;
+    --card: 220 13% 12%;
+    --card-foreground: 190 90% 90%;
 
-    --popover: 0 0% 100%;
-    --popover-foreground: 203 23% 30%;
+    --popover: 220 13% 12%;
+    --popover-foreground: 190 90% 90%;
 
-    /* Deep research blue */
-    --primary: 213 94% 24%;
-    --primary-foreground: 0 0% 98%;
-    --primary-hover: 213 94% 20%;
+    /* Neon cyan primary */
+    --primary: 190 90% 50%;
+    --primary-foreground: 220 13% 8%;
+    --primary-hover: 190 90% 60%;
 
-    /* Subtle academic gray */
-    --secondary: 210 20% 94%;
-    --secondary-foreground: 203 23% 30%;
+    /* Dark secondary */
+    --secondary: 220 13% 16%;
+    --secondary-foreground: 190 90% 90%;
 
-    --muted: 210 20% 94%;
-    --muted-foreground: 215 16% 47%;
+    --muted: 220 13% 16%;
+    --muted-foreground: 190 30% 60%;
 
-    /* Accent for highlights */
-    --accent: 197 71% 73%;
-    --accent-foreground: 203 23% 30%;
+    /* Orange accent */
+    --accent: 25 90% 60%;
+    --accent-foreground: 220 13% 8%;
 
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 98%;
 
-    --border: 220 13% 91%;
-    --input: 220 13% 91%;
-    --ring: 213 94% 24%;
+    --border: 220 13% 20%;
+    --input: 220 13% 16%;
+    --ring: 190 90% 50%;
 
-    /* Research-specific tokens */
-    --research-blue: 213 94% 24%;
-    --research-blue-light: 213 94% 85%;
-    --research-accent: 197 71% 73%;
-    --content-background: 0 0% 99%;
-    --reading-text: 203 23% 25%;
+    /* Cyberpunk-specific tokens */
+    --cyber-blue: 190 90% 50%;
+    --cyber-blue-light: 190 90% 70%;
+    --cyber-orange: 25 90% 60%;
+    --cyber-dark: 220 13% 8%;
+    --cyber-card: 220 13% 12%;
+    --content-background: 220 13% 10%;
+    --reading-text: 190 90% 85%;
+    
+    /* Gradients */
+    --gradient-cyber: linear-gradient(135deg, hsl(190 90% 50%), hsl(25 90% 60%));
+    --gradient-dark: linear-gradient(180deg, hsl(220 13% 12%), hsl(220 13% 8%));
 
     --radius: 0.5rem;
 
@@ -113,5 +119,21 @@ All colors MUST be HSL.
 
   body {
     @apply bg-background text-foreground;
+    background-image: url('./assets/cyber-bg.jpg');
+    background-size: cover;
+    background-position: center;
+    background-attachment: fixed;
+    background-repeat: no-repeat;
+  }
+  
+  body::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(135deg, hsl(220 13% 8% / 0.9), hsl(220 13% 12% / 0.8));
+    z-index: -1;
   }
 }

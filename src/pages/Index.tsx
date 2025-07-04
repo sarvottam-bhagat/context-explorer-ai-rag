@@ -221,11 +221,11 @@ const Index = () => {
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center gap-3">
             <div className="flex items-center gap-2">
-              <BookOpen className="h-6 w-6 text-research-blue" />
-              <Sparkles className="h-4 w-4 text-research-accent" />
+              <BookOpen className="h-6 w-6 text-cyber-blue" />
+              <Sparkles className="h-4 w-4 text-cyber-orange" />
             </div>
-            <h1 className="text-xl font-bold text-research-blue">
-              Deep Research RAG
+            <h1 className="text-xl font-bold text-cyber-blue">
+              Cyber Research RAG
             </h1>
             <span className="text-sm text-muted-foreground hidden sm:inline">
               AI-powered research assistant
@@ -239,8 +239,8 @@ const Index = () => {
         {/* Search Section */}
         <div className="mb-12">
           <div className="text-center mb-8">
-            <h2 className="text-3xl font-bold text-research-blue mb-3">
-              Research Any Topic
+            <h2 className="text-3xl font-bold text-cyber-blue mb-3">
+              Discover The Future
             </h2>
             <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
               Enter keywords or topics to discover relevant sources and dive deep into comprehensive content analysis.
@@ -253,9 +253,9 @@ const Index = () => {
         {/* Comprehensive Analysis Section */}
         {fetchedContents.length > 0 && (
           <div className="mb-8">
-            <Card className="border-2 border-research-accent/20 bg-gradient-to-r from-research-blue/5 to-research-accent/5">
+            <Card className="border-2 border-cyber-orange/20 bg-gradient-to-r from-cyber-blue/5 to-cyber-orange/5">
               <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-research-blue">
+                <CardTitle className="flex items-center gap-2 text-cyber-blue">
                   <Brain className="h-5 w-5" />
                   Comprehensive Analysis
                   <Badge variant="secondary" className="ml-2">
@@ -281,7 +281,7 @@ const Index = () => {
                   <Button
                     onClick={handleComprehensiveAnalysis}
                     disabled={isAnalyzing}
-                    className="bg-research-blue hover:bg-primary-hover"
+                    className="bg-cyber-blue hover:bg-primary-hover"
                   >
                     {isAnalyzing ? (
                       <>
@@ -348,7 +348,7 @@ const Index = () => {
                     <Button
                       onClick={handleFetchAllAndAnalyze}
                       disabled={isAnalyzing}
-                      className="bg-research-blue hover:bg-primary-hover"
+                      className="bg-cyber-blue hover:bg-primary-hover"
                     >
                       {isAnalyzing ? (
                         <>
@@ -381,8 +381,8 @@ const Index = () => {
             <div className="max-w-md mx-auto space-y-4">
               <div className="flex justify-center">
                 <div className="relative">
-                  <BookOpen className="h-16 w-16 text-research-blue/20" />
-                  <Sparkles className="absolute -top-2 -right-2 h-6 w-6 text-research-accent" />
+                  <BookOpen className="h-16 w-16 text-cyber-blue/20" />
+                  <Sparkles className="absolute -top-2 -right-2 h-6 w-6 text-cyber-orange" />
                 </div>
               </div>
               <h3 className="text-xl font-semibold text-foreground">

@@ -53,10 +53,12 @@ export default {
 					DEFAULT: 'hsl(var(--card))',
 					foreground: 'hsl(var(--card-foreground))'
 				},
-				research: {
-					blue: 'hsl(var(--research-blue))',
-					'blue-light': 'hsl(var(--research-blue-light))',
-					accent: 'hsl(var(--research-accent))'
+				cyber: {
+					blue: 'hsl(var(--cyber-blue))',
+					'blue-light': 'hsl(var(--cyber-blue-light))',
+					orange: 'hsl(var(--cyber-orange))',
+					dark: 'hsl(var(--cyber-dark))',
+					card: 'hsl(var(--cyber-card))'
 				},
 				content: {
 					background: 'hsl(var(--content-background))'
