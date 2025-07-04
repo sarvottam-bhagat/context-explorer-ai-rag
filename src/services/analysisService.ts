@@ -27,25 +27,57 @@ ${content.content}
 ---
   `).join('\n');
 
-  const prompt = `You are a research analyst. Analyze the following research materials on the topic "${topic}" and provide a comprehensive research report.
+  const prompt = `You are a research analyst and writer. Create a comprehensive, detailed research article on "${topic}" using the following research materials. Write this as a full-length article that could be published in an academic journal or professional publication.
 
 Research Materials:
 ${contentText}
 
-Please provide a detailed analysis in the following structure:
-1. EXECUTIVE SUMMARY (2-3 paragraphs)
-2. KEY FINDINGS (5-7 bullet points of the most important insights)
-3. DETAILED ANALYSIS (comprehensive analysis organized by themes/subtopics)
-4. SOURCES SUMMARY (brief description of each source and its contribution)
-5. RECOMMENDATIONS (actionable insights and next steps)
+Write a detailed research article with the following structure:
 
-Make sure to:
-- Synthesize information across all sources
-- Identify patterns, contradictions, and consensus
-- Provide critical analysis, not just summary
-- Reference specific sources when making claims
-- Organize findings thematically
-- Be thorough but concise`;
+# ${topic}: A Comprehensive Analysis
+
+## Introduction
+- Provide context and importance of the topic
+- Preview main themes and findings
+- Set the scope of analysis (2-3 paragraphs)
+
+## Background and Context
+- Historical context and evolution
+- Current state of the field
+- Key challenges and opportunities (3-4 paragraphs)
+
+## Key Findings and Insights
+- Present 5-8 major findings with detailed explanations
+- Support each finding with evidence from sources
+- Include contradictions or debates in the field
+- Use subheadings for different themes (4-6 paragraphs per finding)
+
+## Detailed Analysis by Theme
+- Organize findings into coherent themes
+- Provide deep analysis of each theme
+- Compare and contrast different perspectives
+- Include specific examples and case studies (3-4 major themes, 4-5 paragraphs each)
+
+## Implications and Future Directions
+- Discuss practical implications
+- Identify emerging trends
+- Suggest areas for future research
+- Address potential challenges (4-5 paragraphs)
+
+## Conclusion
+- Synthesize main insights
+- Reinforce key messages
+- Final thoughts on significance (2-3 paragraphs)
+
+Writing Requirements:
+- Write 3000-4000 words minimum
+- Use academic but accessible language
+- Include specific examples and quotes from sources
+- Reference sources naturally throughout
+- Maintain analytical depth throughout
+- Create smooth transitions between sections
+- Use varied sentence structure and engaging prose
+- Be comprehensive but well-organized`;
 
   try {
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
@@ -82,11 +114,11 @@ Make sure to:
     const sections = analysisText.split(/(?:^|\n)(?=\d+\.\s+[A-Z\s]+(?::|$))/m);
     
     return {
-      summary: extractSection(analysisText, 'EXECUTIVE SUMMARY', 'KEY FINDINGS') || 'Analysis completed',
-      keyFindings: extractBulletPoints(analysisText, 'KEY FINDINGS', 'DETAILED ANALYSIS'),
-      detailedAnalysis: extractSection(analysisText, 'DETAILED ANALYSIS', 'SOURCES SUMMARY') || analysisText,
+      summary: analysisText.substring(0, 500) + '...', // First 500 chars as summary
+      keyFindings: [], // Will be embedded in the full article
+      detailedAnalysis: analysisText, // Full article content
       sources: contents.map(c => `${c.title} - ${c.url}`),
-      recommendations: extractBulletPoints(analysisText, 'RECOMMENDATIONS') || []
+      recommendations: [] // Will be embedded in the full article
     };
   } catch (error) {
     console.error('Analysis error:', error);
