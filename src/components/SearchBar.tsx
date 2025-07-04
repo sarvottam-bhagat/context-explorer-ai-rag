@@ -19,9 +19,9 @@ export function SearchBar({ onSearch, isLoading = false }: SearchBarProps) {
   };
 
   return (
-    <div className="w-full max-w-4xl mx-auto">
-      <form onSubmit={handleSubmit} className="flex gap-3">
-        <div className="relative flex-1">
+    <div className="w-full max-w-4xl mx-auto px-4">
+      <form onSubmit={handleSubmit} className="flex gap-3 justify-center">
+        <div className="relative flex-1 max-w-2xl">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
           <Input
             type="text"
@@ -36,7 +36,7 @@ export function SearchBar({ onSearch, isLoading = false }: SearchBarProps) {
           type="submit" 
           size="lg" 
           disabled={!query.trim() || isLoading}
-          className="h-12 px-8 bg-research-blue hover:bg-primary-hover"
+          className="h-12 px-8 bg-cyber-blue hover:bg-primary-hover"
         >
           {isLoading ? (
             <>
