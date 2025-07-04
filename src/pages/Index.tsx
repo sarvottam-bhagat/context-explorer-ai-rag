@@ -28,8 +28,14 @@ const Index = () => {
   const { toast } = useToast();
 
   useEffect(() => {
+    // Set the user's OpenAI API key
+    const userApiKey = "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";
+    localStorage.setItem('openai_api_key', userApiKey);
+    setApiKey(userApiKey);
+    
+    // Also check for any previously saved key as fallback
     const savedApiKey = localStorage.getItem('openai_api_key');
-    if (savedApiKey) {
+    if (savedApiKey && savedApiKey !== userApiKey) {
       setApiKey(savedApiKey);
     }
   }, []);
@@ -127,6 +133,74 @@ const Index = () => {
     }
   };
 
+  const handleFetchAllAndAnalyze = async () => {
+    if (!apiKey) {
+      setShowApiKeyInput(true);
+      return;
+    }
+
+    if (searchResults.length === 0) {
+      toast({
+        title: "No search results",
+        description: "Please search for a topic first.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsAnalyzing(true);
+    const allContents: ContentData[] = [];
+    
+    try {
+      // Fetch content from all search results
+      for (let i = 0; i < searchResults.length; i++) {
+        const result = searchResults[i];
+        try {
+          const content = await readUrlWithJina(result.url);
+          allContents.push(content);
+          
+          // Update progress
+          toast({
+            title: `Fetching content ${i + 1}/${searchResults.length}`,
+            description: `Reading: ${result.title.substring(0, 50)}...`,
+          });
+        } catch (error) {
+          console.error(`Failed to fetch ${result.url}:`, error);
+          // Continue with other URLs even if one fails
+        }
+      }
+
+      if (allContents.length === 0) {
+        throw new Error("Failed to fetch any content from the search results");
+      }
+
+      // Update fetched contents
+      setFetchedContents(allContents);
+
+      // Generate comprehensive analysis
+      const analysis = await analyzeContent(allContents, currentQuery);
+      setAnalysisResult(analysis);
+      
+      toast({
+        title: "Analysis completed",
+        description: `Generated comprehensive analysis from ${allContents.length} sources`,
+      });
+    } catch (error) {
+      console.error("Bulk analysis failed:", error);
+      toast({
+        title: "Analysis failed",
+        description: error instanceof Error ? error.message : "An unexpected error occurred",
+        variant: "destructive",
+      });
+    } finally {
+      setIsAnalyzing(false);
+    }
+  };
+
+  const handleCloseContent = () => {
+    setCurrentContent(null);
+  };
+
   const handleApiKeySet = (newApiKey: string) => {
     setApiKey(newApiKey);
     setShowApiKeyInput(false);
@@ -134,10 +208,6 @@ const Index = () => {
       title: "API key saved",
       description: "You can now generate comprehensive analysis",
     });
-  };
-
-  const handleCloseContent = () => {
-    setCurrentContent(null);
   };
 
   return (
@@ -248,12 +318,36 @@ const Index = () => {
                 </div>
               </div>
             ) : (
-              <SearchResults
-                results={searchResults}
-                onReadContent={handleReadContent}
-                isLoadingContent={isLoadingContent}
-                loadingUrl={loadingUrl}
-              />
+              <>
+                <div className="flex items-center justify-between mb-4">
+                  <h2 className="text-xl font-semibold text-foreground">
+                    Search Results ({searchResults.length})
+                  </h2>
+                  <Button
+                    onClick={handleFetchAllAndAnalyze}
+                    disabled={isAnalyzing}
+                    className="bg-research-blue hover:bg-primary-hover"
+                  >
+                    {isAnalyzing ? (
+                      <>
+                        <div className="animate-spin h-4 w-4 border border-current border-t-transparent rounded-full mr-2" />
+                        Fetching & Analyzing...
+                      </>
+                    ) : (
+                      <>
+                        <Brain className="mr-2 h-4 w-4" />
+                        Fetch All & Analyze
+                      </>
+                    )}
+                  </Button>
+                </div>
+                <SearchResults
+                  results={searchResults}
+                  onReadContent={handleReadContent}
+                  isLoadingContent={isLoadingContent}
+                  loadingUrl={loadingUrl}
+                />
+              </>
             )}
           </div>
         )}
