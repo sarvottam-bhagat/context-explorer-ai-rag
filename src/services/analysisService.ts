@@ -123,7 +123,9 @@ Writing Requirements:
     });
 
     if (!response.ok) {
-      throw new Error(`Analysis failed: ${response.status} ${response.statusText}`);
+      const errorData = await response.text();
+      console.error('OpenAI API Error:', errorData);
+      throw new Error(`Analysis failed: ${response.status} - ${errorData}`);
     }
 
     const data = await response.json();
