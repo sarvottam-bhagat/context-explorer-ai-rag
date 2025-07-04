@@ -1,9 +1,15 @@
-import { useState } from "react";
-import { BookOpen, Sparkles } from "lucide-react";
+import { useState, useEffect } from "react";
+import { BookOpen, Sparkles, Brain, Settings, X } from "lucide-react";
 import { SearchBar } from "@/components/SearchBar";
 import { SearchResults, SearchResult } from "@/components/SearchResults";
 import { ContentViewer, ContentData } from "@/components/ContentViewer";
+import { ComprehensiveAnalysis } from "@/components/ComprehensiveAnalysis";
+import { ApiKeyInput } from "@/components/ApiKeyInput";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import { searchWithJina, readUrlWithJina } from "@/services/jinaService";
+import { analyzeContent, AnalysisResult } from "@/services/analysisService";
 import { useToast } from "@/hooks/use-toast";
 
 const Index = () => {
@@ -13,11 +19,26 @@ const Index = () => {
   const [isLoadingContent, setIsLoadingContent] = useState(false);
   const [loadingUrl, setLoadingUrl] = useState<string>("");
   const [hasSearched, setHasSearched] = useState(false);
+  const [fetchedContents, setFetchedContents] = useState<ContentData[]>([]);
+  const [currentQuery, setCurrentQuery] = useState<string>("");
+  const [apiKey, setApiKey] = useState<string>("");
+  const [showApiKeyInput, setShowApiKeyInput] = useState(false);
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
+  const [analysisResult, setAnalysisResult] = useState<AnalysisResult | null>(null);
   const { toast } = useToast();
+
+  useEffect(() => {
+    const savedApiKey = localStorage.getItem('openai_api_key');
+    if (savedApiKey) {
+      setApiKey(savedApiKey);
+    }
+  }, []);
 
   const handleSearch = async (query: string) => {
     setIsSearching(true);
     setHasSearched(true);
+    setCurrentQuery(query);
+    setFetchedContents([]); // Reset collected content for new search
     try {
       const results = await searchWithJina(query);
       setSearchResults(results);
@@ -44,6 +65,16 @@ const Index = () => {
     try {
       const content = await readUrlWithJina(url);
       setCurrentContent(content);
+      
+      // Add to fetched contents for comprehensive analysis
+      setFetchedContents(prev => {
+        const exists = prev.some(c => c.url === content.url);
+        if (!exists) {
+          return [...prev, content];
+        }
+        return prev;
+      });
+      
       toast({
         title: "Content loaded",
         description: `Successfully loaded "${title}"`,
@@ -59,6 +90,50 @@ const Index = () => {
       setIsLoadingContent(false);
       setLoadingUrl("");
     }
+  };
+
+  const handleComprehensiveAnalysis = async () => {
+    if (!apiKey) {
+      setShowApiKeyInput(true);
+      return;
+    }
+
+    if (fetchedContents.length === 0) {
+      toast({
+        title: "No content to analyze",
+        description: "Please read some articles first before generating comprehensive analysis.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsAnalyzing(true);
+    try {
+      const analysis = await analyzeContent(fetchedContents, currentQuery);
+      setAnalysisResult(analysis);
+      toast({
+        title: "Analysis completed",
+        description: `Generated comprehensive analysis from ${fetchedContents.length} sources`,
+      });
+    } catch (error) {
+      console.error("Analysis failed:", error);
+      toast({
+        title: "Analysis failed",
+        description: error instanceof Error ? error.message : "An unexpected error occurred",
+        variant: "destructive",
+      });
+    } finally {
+      setIsAnalyzing(false);
+    }
+  };
+
+  const handleApiKeySet = (newApiKey: string) => {
+    setApiKey(newApiKey);
+    setShowApiKeyInput(false);
+    toast({
+      title: "API key saved",
+      description: "You can now generate comprehensive analysis",
+    });
   };
 
   const handleCloseContent = () => {
@@ -100,6 +175,67 @@ const Index = () => {
           
           <SearchBar onSearch={handleSearch} isLoading={isSearching} />
         </div>
+
+        {/* Comprehensive Analysis Section */}
+        {fetchedContents.length > 0 && (
+          <div className="mb-8">
+            <Card className="border-2 border-research-accent/20 bg-gradient-to-r from-research-blue/5 to-research-accent/5">
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2 text-research-blue">
+                  <Brain className="h-5 w-5" />
+                  Comprehensive Analysis
+                  <Badge variant="secondary" className="ml-2">
+                    {fetchedContents.length} Sources Ready
+                  </Badge>
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="grid gap-2">
+                  <p className="text-sm text-muted-foreground">
+                    Generate a detailed research report analyzing all fetched content:
+                  </p>
+                  <div className="flex flex-wrap gap-2">
+                    {fetchedContents.map((content, index) => (
+                      <Badge key={index} variant="outline" className="text-xs">
+                        {content.title.substring(0, 50)}...
+                      </Badge>
+                    ))}
+                  </div>
+                </div>
+                
+                <div className="flex gap-3">
+                  <Button
+                    onClick={handleComprehensiveAnalysis}
+                    disabled={isAnalyzing}
+                    className="bg-research-blue hover:bg-primary-hover"
+                  >
+                    {isAnalyzing ? (
+                      <>
+                        <div className="animate-spin h-4 w-4 border border-current border-t-transparent rounded-full mr-2" />
+                        Analyzing...
+                      </>
+                    ) : (
+                      <>
+                        <Brain className="mr-2 h-4 w-4" />
+                        Generate Analysis
+                      </>
+                    )}
+                  </Button>
+                  
+                  {!apiKey && (
+                    <Button
+                      variant="outline"
+                      onClick={() => setShowApiKeyInput(true)}
+                    >
+                      <Settings className="mr-2 h-4 w-4" />
+                      Setup API Key
+                    </Button>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        )}
 
         {/* Results Section */}
         {hasSearched && (
@@ -147,6 +283,33 @@ const Index = () => {
       <ContentViewer
         content={currentContent}
         onClose={handleCloseContent}
+      />
+
+      {/* API Key Input Modal */}
+      {showApiKeyInput && (
+        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+          <div className="relative">
+            <ApiKeyInput
+              onApiKeySet={handleApiKeySet}
+              currentApiKey={apiKey}
+            />
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={() => setShowApiKeyInput(false)}
+              className="absolute -top-2 -right-2"
+            >
+              <X className="h-4 w-4" />
+            </Button>
+          </div>
+        </div>
+      )}
+
+      {/* Comprehensive Analysis Modal */}
+      <ComprehensiveAnalysis
+        analysis={analysisResult}
+        topic={currentQuery}
+        onClose={() => setAnalysisResult(null)}
       />
     </div>
   );
