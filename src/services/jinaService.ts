@@ -3,14 +3,6 @@ import { ContentData } from "@/components/ContentViewer";
 
 const JINA_API_KEY = "jina_704684670cf5478486d24ff9730b9cc3nu7mMxqrLMpP_YdQPfr7q1pVJtOG";
 
-export interface JinaSearchResponse {
-  data: Array<{
-    title: string;
-    url: string;
-    content: string;
-  }>;
-}
-
 export async function searchWithJina(query: string): Promise<SearchResult[]> {
   try {
     const encodedQuery = encodeURIComponent(query);
@@ -26,18 +18,63 @@ export async function searchWithJina(query: string): Promise<SearchResult[]> {
       throw new Error(`Search failed: ${response.status} ${response.statusText}`);
     }
 
-    const data: JinaSearchResponse = await response.json();
+    const textData = await response.text();
+    console.log('Jina search response:', textData);
     
-    return data.data.map(item => ({
-      title: item.title || 'Untitled',
-      url: item.url,
-      description: item.content?.substring(0, 300) + '...' || 'No description available',
-      date: undefined // SERP doesn't always include dates
-    }));
+    // Parse the text response format from Jina
+    const results = parseJinaSearchResponse(textData);
+    
+    return results;
   } catch (error) {
     console.error('Jina search error:', error);
     throw new Error('Failed to search. Please try again.');
   }
+}
+
+function parseJinaSearchResponse(textData: string): SearchResult[] {
+  const results: SearchResult[] = [];
+  const lines = textData.split('\n');
+  
+  let currentResult: Partial<SearchResult> = {};
+  
+  for (const line of lines) {
+    const trimmedLine = line.trim();
+    
+    if (trimmedLine.match(/^\[\d+\] Title: /)) {
+      // If we have a previous result, save it
+      if (currentResult.title && currentResult.url) {
+        results.push({
+          title: currentResult.title,
+          url: currentResult.url,
+          description: currentResult.description || 'No description available',
+          date: currentResult.date
+        });
+      }
+      
+      // Start new result
+      currentResult = {
+        title: trimmedLine.replace(/^\[\d+\] Title: /, '')
+      };
+    } else if (trimmedLine.match(/^\[\d+\] URL Source: /)) {
+      currentResult.url = trimmedLine.replace(/^\[\d+\] URL Source: /, '');
+    } else if (trimmedLine.match(/^\[\d+\] Description: /)) {
+      currentResult.description = trimmedLine.replace(/^\[\d+\] Description: /, '');
+    } else if (trimmedLine.match(/^\[\d+\] Date: /)) {
+      currentResult.date = trimmedLine.replace(/^\[\d+\] Date: /, '');
+    }
+  }
+  
+  // Don't forget the last result
+  if (currentResult.title && currentResult.url) {
+    results.push({
+      title: currentResult.title,
+      url: currentResult.url,
+      description: currentResult.description || 'No description available',
+      date: currentResult.date
+    });
+  }
+  
+  return results;
 }
 
 export async function readUrlWithJina(url: string): Promise<ContentData> {
