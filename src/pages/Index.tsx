@@ -8,6 +8,8 @@ import { ApiKeyInput } from "@/components/ApiKeyInput";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { searchWithJina, readUrlWithJina } from "@/services/jinaService";
 import { analyzeContent, AnalysisResult } from "@/services/analysisService";
 import { useToast } from "@/hooks/use-toast";
@@ -25,6 +27,7 @@ const Index = () => {
   const [showApiKeyInput, setShowApiKeyInput] = useState(false);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [analysisResult, setAnalysisResult] = useState<AnalysisResult | null>(null);
+  const [resultsToAnalyze, setResultsToAnalyze] = useState<number>(5);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -152,8 +155,9 @@ const Index = () => {
     const allContents: ContentData[] = [];
     
     try {
-      // Fetch content from all search results
-      for (let i = 0; i < searchResults.length; i++) {
+      // Fetch content from selected number of search results
+      const resultsToFetch = Math.min(resultsToAnalyze, searchResults.length);
+      for (let i = 0; i < resultsToFetch; i++) {
         const result = searchResults[i];
         try {
           const content = await readUrlWithJina(result.url);
@@ -161,7 +165,7 @@ const Index = () => {
           
           // Update progress
           toast({
-            title: `Fetching content ${i + 1}/${searchResults.length}`,
+            title: `Fetching content ${i + 1}/${resultsToFetch}`,
             description: `Reading: ${result.title.substring(0, 50)}...`,
           });
         } catch (error) {
@@ -323,23 +327,42 @@ const Index = () => {
                   <h2 className="text-xl font-semibold text-foreground">
                     Search Results ({searchResults.length})
                   </h2>
-                  <Button
-                    onClick={handleFetchAllAndAnalyze}
-                    disabled={isAnalyzing}
-                    className="bg-research-blue hover:bg-primary-hover"
-                  >
-                    {isAnalyzing ? (
-                      <>
-                        <div className="animate-spin h-4 w-4 border border-current border-t-transparent rounded-full mr-2" />
-                        Fetching & Analyzing...
-                      </>
-                    ) : (
-                      <>
-                        <Brain className="mr-2 h-4 w-4" />
-                        Fetch All & Analyze
-                      </>
-                    )}
-                  </Button>
+                  <div className="flex items-center gap-4">
+                    <div className="flex items-center gap-2">
+                      <Label htmlFor="results-count" className="text-sm">
+                        Analyze:
+                      </Label>
+                      <Input
+                        id="results-count"
+                        type="number"
+                        min="1"
+                        max={Math.min(10, searchResults.length)}
+                        value={resultsToAnalyze}
+                        onChange={(e) => setResultsToAnalyze(Math.max(1, Math.min(10, parseInt(e.target.value) || 5)))}
+                        className="w-16 h-8 text-center"
+                      />
+                      <span className="text-sm text-muted-foreground">
+                        of {searchResults.length} results
+                      </span>
+                    </div>
+                    <Button
+                      onClick={handleFetchAllAndAnalyze}
+                      disabled={isAnalyzing}
+                      className="bg-research-blue hover:bg-primary-hover"
+                    >
+                      {isAnalyzing ? (
+                        <>
+                          <div className="animate-spin h-4 w-4 border border-current border-t-transparent rounded-full mr-2" />
+                          Fetching & Analyzing...
+                        </>
+                      ) : (
+                        <>
+                          <Brain className="mr-2 h-4 w-4" />
+                          Fetch & Analyze
+                        </>
+                      )}
+                    </Button>
+                  </div>
                 </div>
                 <SearchResults
                   results={searchResults}
